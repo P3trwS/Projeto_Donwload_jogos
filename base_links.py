@@ -9,16 +9,8 @@ https://www.elamigos-games.net/
 
 from selenium.webdriver.common.by import By
 
-def extator_de_links(driver):
-    url_site_elamigos = input("cole aqui o link do site ELAMIGOS\n Com o url do jogo que quer baixar\n EX:https://www.elamigos-games.net/games/ready-or-not")
-    driver.get(url_site_elamigos)
-    driver.find_element(By.ID, "")
 
 
-def lista_de_jogos():
-    print(
-        "1 - Forza Horizon 5"
-        )
 
 
 update_forza_1 = ["https://www.mediafire.com/file/xqyachf7353zx5v/For5zaHo5riz5on5U-Update1.607.493-elamigos.part1.rar/file", 
