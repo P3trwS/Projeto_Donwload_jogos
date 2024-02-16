@@ -7,6 +7,7 @@ do arquivo base_links
 #%%
 import time
 import tkinter as ttk 
+import re
 from tkinter import Tk
 from tkinter import filedialog
 from tkinter import messagebox
@@ -58,6 +59,7 @@ def escolhe_jogo(driver:WebDriver):
 def extrator_links(driver:WebDriver):
 
     links_downlaod = []
+    link_mediafire = []
 
     print("Vou entrar resgatar os links do site selecionado...")
     html_da_pagina = driver.page_source
@@ -66,29 +68,45 @@ def extrator_links(driver:WebDriver):
 
     id_notiene = soup.find(id='notiene')
 
+    print(id_notiene)
+
     if id_notiene:
         print("Pegando links:...")
         links = id_notiene.find_all('a')
         for link in links:
-            
-            links_downlaod = f"Nome:{link.text}\nLINK:{link['href']}"
+
+            links_downlaod.append({'nome': link.text.strip(),'link': link['href']})
+
+            if re.search(r'\bMEDIAFIRE\b', link.text):
+                link_mediafire.append(link['href'])
+                print(f"Link MEDIAFIRE:{link_mediafire}\n")
 
     else:
         print("Elemento com notiene id nsao emcontrado") 
 
-    messagebox.showinfo("ATENÇÃO","Vou selecionar para baixar o jogo pelo MEDIA FIRE...")
+    return link_mediafire, links_downlaod
 
-    return links_downlaod
+def remover_aspas_simples(link):
+    return link.replace("'", "")
 
 def download_game(driver:WebDriver):
-    links = extrator_links(driver)
-    print(len(links).)
-    # if len(links) >= 6:
-    #     link_mediafire = links[5]
-    #     print(link_mediafire)
-    # else:
-    #     print("Nao h[a links suficientes]")
 
+    messagebox.showinfo("ATENÇÃO","Vou selecionar para baixar o jogo pelo MEDIA FIRE...")
+
+    mediafire, outros = extrator_links(driver)
+
+    if mediafire:
+        mediafire_link = mediafire[0]
+        print("Outros links:", outros)
+        print("Media fire link sem aspas:", remover_aspas_simples(mediafire_link))
+              
+    driver.get(mediafire_link)
+
+    messagebox.showwarning("Atenção","FAÇA O reCAPTCHA DIREITO E CLIQUE EM OK PARA CONTINUAR\n !!!CLIQUE EM OK DEPOIS DE RESOLVER O RECAPTCHA")
+
+    driver.find_element(By.CLASS_NAME,"uk-button uk-button-danger").click()
+
+    
 def main():
     root = ttk.Tk()
     download_dir = seleciona_diretorio(root)
