@@ -35,13 +35,23 @@ def seleciona_diretorio(root: Tk):
         root.destroy()
         return None
 
+def diretorio_download():
+    root = ttk.Tk()
+    download_dir = seleciona_diretorio(root)
+    if not download_dir:
+        return exit()
+    return download_dir
 
-def get_page_load_time(driver: WebDriver, url: str) -> float:
-    start_time = time.time()
-    driver.get(url)
-    end_time = time.time()
-    return round(end_time - start_time)
+def navegador(download_dir) -> WebDriver:
+    chrome_options = webdriver.ChromeOptions()
+    prefs = {"download.default_directory": download_dir}
+    chrome_options.add_experimental_option("prefs", prefs)
+    chrome_options.add_argument("disable-notifications")
+    chrome_options.add_experimental_option("detach", True)
+    driver = webdriver.Chrome(chrome_options)
+    # driver.maximize_window()
 
+    return driver
 
 def instalando_adblock(driver: WebDriver):
 
@@ -52,6 +62,13 @@ def instalando_adblock(driver: WebDriver):
         "ATENÇÃO",
         "INSTALE O ADBLOCK PARA QUE O SCRIPT FUNCIONE CORRETAMENTE \n CLIQUE EM OK APENAS SE JÁ INSTALOU...\n NÃO FECHE A PÁGINA",
     )
+
+
+def get_page_load_time(driver: WebDriver, url: str) -> float:
+    start_time = time.time()
+    driver.get(url)
+    end_time = time.time()
+    return round(end_time - start_time)
 
 
 def escolhe_jogo(driver: WebDriver):
@@ -158,28 +175,22 @@ def download_game(driver: WebDriver, lista_game: list):
         driver.find_element(By.ID,"downloadButton").click()
         time.sleep(5)
         
-        
-    # for download in lista_game[0]:
-    #     driver.get(download)
-    #     down = driver.find_element(By.ID, "downloadButton")
-    #     down.click()
-    #     print(f"Download do link: {lista_game}\n Iniciado")
-    #     time.sleep(2.5)
-
-
 def main():
-    root = ttk.Tk()
-    download_dir = seleciona_diretorio(root)
-    if not download_dir:
-        return
+    # root = ttk.Tk()
+    # download_dir = seleciona_diretorio(root)
+    # if not download_dir:
+    #     return
 
-    chrome_options = webdriver.ChromeOptions()
-    prefs = {"download.default_directory": download_dir}
-    chrome_options.add_experimental_option("prefs", prefs)
-    chrome_options.add_argument("disable-notifications")
-    chrome_options.add_experimental_option("detach", True)
-    driver = webdriver.Chrome(chrome_options)
-    # driver.maximize_window()
+    # chrome_options = webdriver.ChromeOptions()
+    # prefs = {"download.default_directory": download_dir}
+    # chrome_options.add_experimental_option("prefs", prefs)
+    # chrome_options.add_argument("disable-notifications")
+    # chrome_options.add_experimental_option("detach", True)
+    # driver = webdriver.Chrome(chrome_options)
+
+    diretorio = diretorio_download()
+    driver = navegador(diretorio)
+    
     instalando_adblock(driver)
     messagebox.showinfo(
         "Selecione",
