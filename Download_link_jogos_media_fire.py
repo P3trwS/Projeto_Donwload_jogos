@@ -19,11 +19,12 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.alert import Alert
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.chrome.options import Options
 
 from base_links import forza_horizon_links
 
 
-def seleciona_diretorio(root: Tk):
+def seleciona_diretorio_donwload_game(root: Tk):
     root.withdraw()
     download_dir = filedialog.askdirectory()
     if download_dir:
@@ -37,39 +38,42 @@ def seleciona_diretorio(root: Tk):
 
 def diretorio_download():
     root = ttk.Tk()
-    download_dir = seleciona_diretorio(root)
+    download_dir = seleciona_diretorio_donwload_game(root)
     if not download_dir:
         return exit()
     return download_dir
 
-def navegador(download_dir) -> WebDriver:
-    chrome_options = webdriver.ChromeOptions()
+def seleciona_arquivo_CRX(root: Tk):
+    root.withdraw()
+    arquivo_crx = filedialog.askopenfilename(filetypes=[("Arquivos CRX", "*.crx")])
+    print(arquivo_crx)
+    if arquivo_crx:
+        return arquivo_crx
+    else:
+        messagebox.showerror(
+            "Erro", "Nenhum arquivo CRX foi selecionado. Fechando o programa..."
+        )
+        root.destroy()
+        return None
+
+def arquivo_crx():
+    root = ttk.Tk()
+    file_crx = seleciona_arquivo_CRX(root)
+    if not file_crx:
+        return exit()
+    return file_crx
+
+def navegador(download_dir,file_crx) -> WebDriver:
+    chrome_options = Options()
     prefs = {"download.default_directory": download_dir}
     chrome_options.add_experimental_option("prefs", prefs)
     chrome_options.add_argument("disable-notifications")
     chrome_options.add_experimental_option("detach", True)
-    driver = webdriver.Chrome(chrome_options)
+    chrome_options.add_extension(f'{file_crx}')
+    driver = webdriver.Chrome(options=chrome_options)
     # driver.maximize_window()
 
     return driver
-
-def instalando_adblock(driver: WebDriver):
-
-    url = "https://chrome.google.com/webstore/detail/adblock-%E2%80%94-the-best-ad-b/gighmmpiobklfepjocnamgkkbiglidom?hl=pt-br"
-    get_page_load_time(driver, url)
-
-    messagebox.showwarning(
-        "ATENÇÃO",
-        "INSTALE O ADBLOCK PARA QUE O SCRIPT FUNCIONE CORRETAMENTE \n CLIQUE EM OK APENAS SE JÁ INSTALOU...\n NÃO FECHE A PÁGINA",
-    )
-
-
-def get_page_load_time(driver: WebDriver, url: str) -> float:
-    start_time = time.time()
-    driver.get(url)
-    end_time = time.time()
-    return round(end_time - start_time)
-
 
 def escolhe_jogo(driver: WebDriver):
     driver.get("https://www.elamigos-games.net/")
@@ -96,8 +100,6 @@ def extrator_links(driver: WebDriver):
     soup = BeautifulSoup(html_da_pagina, "html.parser")
 
     id_notiene = soup.find(id="notiene")
-
-    #print(id_notiene)
 
     if id_notiene:
         print("Pegando links:...")
@@ -176,22 +178,12 @@ def download_game(driver: WebDriver, lista_game: list):
         time.sleep(5)
         
 def main():
-    # root = ttk.Tk()
-    # download_dir = seleciona_diretorio(root)
-    # if not download_dir:
-    #     return
-
-    # chrome_options = webdriver.ChromeOptions()
-    # prefs = {"download.default_directory": download_dir}
-    # chrome_options.add_experimental_option("prefs", prefs)
-    # chrome_options.add_argument("disable-notifications")
-    # chrome_options.add_experimental_option("detach", True)
-    # driver = webdriver.Chrome(chrome_options)
-
-    diretorio = diretorio_download()
-    driver = navegador(diretorio)
     
-    instalando_adblock(driver)
+    diretorio = diretorio_download()
+    arquivo_adblock = arquivo_crx()
+
+    driver = navegador(diretorio,arquivo_adblock)
+
     messagebox.showinfo(
         "Selecione",
         "Abrindo o site...\n Selecione o jogo que deseja...\n APENAS PERMANEÇA NA PÁGINA DO JOGO...",
