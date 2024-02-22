@@ -12,17 +12,12 @@ from tkinter import filedialog
 from tkinter import messagebox
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.alert import Alert
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
-
-from base_links import forza_horizon_links
-
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 def seleciona_diretorio_donwload_game(root: Tk):
     root.withdraw()
@@ -65,10 +60,16 @@ def arquivo_crx():
 
 def navegador(download_dir,file_crx) -> WebDriver:
     chrome_options = Options()
-    prefs = {"download.default_directory": download_dir}
+    prefs = {"download.default_directory": download_dir,
+        "download.prompt_for_download": False,
+        "download.directory_upgrade": True,
+        "safebrowsing.enabled": False
+    }
     chrome_options.add_experimental_option("prefs", prefs)
     chrome_options.add_argument("disable-notifications")
     chrome_options.add_experimental_option("detach", True)
+    chrome_options.page_load_strategy = 'normal'
+    chrome_options.add_argument("--safebrowsing-disable-download-protection")
     chrome_options.add_extension(f'{file_crx}')
     driver = webdriver.Chrome(options=chrome_options)
     # driver.maximize_window()
@@ -174,8 +175,9 @@ def download_game(driver: WebDriver, lista_game: list):
 
     for media_url in lista_game:
         driver.get(media_url)
-        driver.find_element(By.ID,"downloadButton").click()
-        time.sleep(5)
+        time.sleep(10)
+        driver.find_element(By.ID, "downloadButton").click
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "downloadButton"))).click()
         
 def main():
     
@@ -195,3 +197,5 @@ def main():
 # %%
 if __name__ == "__main__":
     main()
+
+# %%
