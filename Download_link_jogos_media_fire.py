@@ -10,6 +10,7 @@ import re
 from tkinter import Tk
 from tkinter import filedialog
 from tkinter import messagebox
+import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
@@ -21,10 +22,11 @@ from selenium.webdriver.common.alert import Alert
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
 
-from base_links import forza_horizon_links
-
 
 def seleciona_diretorio_donwload_game(root: Tk):
+
+    messagebox.showinfo("Selecionar","Selecione para onde quer que o jogo seja instalado...")
+
     root.withdraw()
     download_dir = filedialog.askdirectory()
     if download_dir:
@@ -44,6 +46,9 @@ def diretorio_download():
     return download_dir
 
 def seleciona_arquivo_CRX(root: Tk):
+
+    messagebox.showinfo("Selecione","Selecione o arquido do Adblock  \n necessário para q")
+
     root.withdraw()
     arquivo_crx = filedialog.askopenfilename(filetypes=[("Arquivos CRX", "*.crx")])
     print(arquivo_crx)
@@ -166,16 +171,40 @@ def extrator_de_links_game(driver: WebDriver):
 
     return lista_game
 
-def download_game(driver: WebDriver, lista_game: list):
+def download_page(driver: WebDriver, lista_game: list):
 
     partes = lista_game.__len__()
 
-    messagebox.showinfo("Atencao", f"Começarei a fazer o download do jogo...\nNeste jogo temos: {partes} partes\n")
+    messagebox.showinfo("Atencao", f"Neste jogo temos: {partes} partes\n")
+
+    link_button_download_mediafire = []
 
     for media_url in lista_game:
         driver.get(media_url)
-        driver.find_element(By.ID,"downloadButton").click()
+        
         time.sleep(5)
+
+        print("Pegando html da pagina")
+
+        html_pagina_mediafire = driver.page_source
+        soup = BeautifulSoup(html_pagina_mediafire, "html.parser")
+
+        button_link = soup.find(id="download_link")
+
+        if button_link:
+            
+            link_button = button_link.find_all("a")
+
+            for link in link_button:
+                
+                if link_button not in link_button_download_mediafire:
+                    link_button_download_mediafire.append(link["href"])
+                    
+                    
+        print(link_button_download_mediafire)
+
+        return link_button_download_mediafire
+
         
 def main():
     
@@ -185,12 +214,12 @@ def main():
     driver = navegador(diretorio,arquivo_adblock)
 
     messagebox.showinfo(
-        "Selecione",
-        "Abrindo o site...\n Selecione o jogo que deseja...\n APENAS PERMANEÇA NA PÁGINA DO JOGO...",
+        "Finalizando",
+        "Finalizando de instalar o adblock...\n Clique em OK e feche a aba do adblock \n Você será redirecionado para a página dos jogos...",
     )
     escolhe_jogo(driver)
     lista_game = extrator_de_links_game(driver)
-    download_game(driver,lista_game)
+    download_page(driver,lista_game)
 
 # %%
 if __name__ == "__main__":
