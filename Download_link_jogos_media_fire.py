@@ -1,8 +1,3 @@
-# Cod ultra
-"""
-Este Código faz o download do conteúdo de dentro dos links que estão dentro
-do arquivo base_links
-"""
 # %%
 import time
 import tkinter as ttk
@@ -78,7 +73,6 @@ def navegador(download_dir,file_crx) -> WebDriver:
     chrome_options.add_experimental_option("detach", True)
     chrome_options.add_extension(f'{file_crx}')
     driver = webdriver.Chrome(options=chrome_options)
-    # driver.maximize_window()
 
     return driver
 
@@ -98,6 +92,8 @@ def escolhe_jogo(driver: WebDriver):
     return selected_game
 
 def extrator_links(driver: WebDriver):
+
+    driver.minimize_window()
 
     links_downlaod = []
     link_mediafire = []
@@ -143,6 +139,8 @@ def extrator_de_links_game(driver: WebDriver):
 
     driver.get(mediafire_link)
 
+    driver.maximize_window()
+
     messagebox.showwarning(
         "Atenção",
         "FAÇA O reCAPTCHA DIREITO E CLIQUE EM OK PARA CONTINUAR\n !!!CLIQUE EM OK DEPOIS DE RESOLVER O RECAPTCHA",
@@ -162,8 +160,6 @@ def extrator_de_links_game(driver: WebDriver):
 
         game = game_links.find_all("a")
 
-        print(game)
-
         for link in game:
             link_text = link.text
             if link_text not in lista_game:
@@ -174,6 +170,8 @@ def extrator_de_links_game(driver: WebDriver):
     return lista_game
 
 def extrator_links_download_page(driver: WebDriver, lista_game: list):
+
+    driver.maximize_window()
 
     game_partes = lista_game.__len__()
 
@@ -271,6 +269,8 @@ def main():
     game_selecionado = escolhe_jogo(driver)
     lista_game = extrator_de_links_game(driver)
     link_download = extrator_links_download_page(driver,lista_game)
+
+    driver.minimize_window()
     
     if diretorio:
         download_game(link_download,game_selecionado,diretorio)
