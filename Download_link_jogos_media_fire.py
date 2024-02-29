@@ -10,21 +10,17 @@ import requests
 from tqdm import tqdm
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.alert import Alert
-from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.chrome.webdriver import WebDriver as WebDriverC
+from selenium_recaptcha_solver import RecaptchaSolver
 from selenium.webdriver.chrome.options import Options
 from urllib3.exceptions import IncompleteRead
 
-def seleciona_diretorio_donwload_game(root: Tk):
+def _seleciona_diretorio_donwload_game():
 
     messagebox.showinfo("Selecionar","Selecione para onde quer que o jogo seja instalado...")
 
-    root.withdraw()
     download_dir = filedialog.askdirectory()
     if download_dir:
         return download_dir
@@ -32,35 +28,31 @@ def seleciona_diretorio_donwload_game(root: Tk):
         messagebox.showerror(
             "Erro", "Nenhum diretório foi selecionado. Fechando o programa..."
         )
-        root.destroy()
         return None
 
 def diretorio_download():
-    root = ttk.Tk()
-    download_dir = seleciona_diretorio_donwload_game(root)
+    download_dir = _seleciona_diretorio_donwload_game()
     if not download_dir:
         return exit()
     return download_dir
 
-def seleciona_arquivo_CRX(root: Tk):
+def _seleciona_arquivo_CRX():
 
-    messagebox.showinfo("Selecione","Selecione o arquivo CRX do Adblock  \nnecessário para que o script funcione corretamente")
-
-    root.withdraw()
-    arquivo_crx = filedialog.askopenfilename(filetypes=[("Arquivos CRX", "*.crx")])
-    print(arquivo_crx)
-    if arquivo_crx:
-        return arquivo_crx
+    diretorio_script = os.path.dirname(os.path.realpath(__file__))
+    arquivo_crx_path = os.path.join(diretorio_script, "AdBlock-—-o-melhor-bloqueador-de-anúncios.crx")
+    
+    if os.path.exists(arquivo_crx_path):
+        print("Arquivo CRX encontrado:", arquivo_crx_path)
+        return arquivo_crx_path
     else:
         messagebox.showerror(
-            "Erro", "Nenhum arquivo CRX foi selecionado. Fechando o programa..."
+            "Erro", "O arquivo CRX necessário não foi encontrado. \nVeirifique se o arquivo AdBlock-—-o-melhor-bloqueador-de-anúncios.crx esta na mesma do arquivo python\nFechando o programa..."
         )
-        root.destroy()
+        
         return None
 
 def arquivo_crx():
-    root = ttk.Tk()
-    file_crx = seleciona_arquivo_CRX(root)
+    file_crx = _seleciona_arquivo_CRX()
     if not file_crx:
         return exit()
     return file_crx
@@ -75,6 +67,14 @@ def navegador(download_dir,file_crx) -> WebDriver:
     driver = webdriver.Chrome(options=chrome_options)
 
     return driver
+
+def navgoogle(file_crx) -> WebDriverC:
+    chrome_options = Options()
+    chrome_options.add_extension(f'{file_crx}')
+    chrome_options.add_argument('--no-sandbox')
+    driver2 = webdriver.Chrome(options=chrome_options)
+
+    return driver2
 
 def escolhe_jogo(driver: WebDriver):
     driver.get("https://www.elamigos-games.net/")
@@ -92,8 +92,6 @@ def escolhe_jogo(driver: WebDriver):
     return selected_game
 
 def extrator_links(driver: WebDriver):
-
-    driver.minimize_window()
 
     links_downlaod = []
     link_mediafire = []
@@ -114,18 +112,13 @@ def extrator_links(driver: WebDriver):
 
             if re.search(r"\bMEDIAFIRE\b", link.text):
                 link_mediafire.append(link["href"])
-
     else:
         print("Elemento com notiene id nsao emcontrado")
 
     return link_mediafire, links_downlaod
 
 
-def remover_aspas_simples(link):
-    return link.replace("'", "")
-
-
-def extrator_de_links_game(driver: WebDriver):
+def extrator_de_links_game(driver:WebDriver, file_crx):
 
     messagebox.showinfo(
         "ATENÇÃO", "Vou selecionar para baixar o jogo pelo MEDIA FIRE..."
@@ -136,26 +129,24 @@ def extrator_de_links_game(driver: WebDriver):
     if mediafire:
         mediafire_link = mediafire[0]
         print("Outros links:", outros)
-
-    driver.get(mediafire_link)
-
-    driver.maximize_window()
-
-
+        
 ## Atualização para fazer a confirmação atomática do recaptcha
+
+    driver2 = navgoogle(file_crx=file_crx)
     
-    messagebox.showwarning(
-        "Atenção",
-        "FAÇA O reCAPTCHA DIREITO E CLIQUE EM OK PARA CONTINUAR\n !!!CLIQUE EM OK DEPOIS DE RESOLVER O RECAPTCHA",
-    )
+    solver = RecaptchaSolver(driver=driver2)
 
-    time.sleep(4)
+    driver2.get(mediafire_link)
 
-#-------------------------------------------------------------------
+    recaptcha_iframe = driver2.find_element(By.XPATH, "/html/body/div[1]/div[3]/div/main/div/div/div[1]/form/div/div/div[2]/div/div/div/div/div/iframe")
+
+    solver.click_recaptcha_v2(iframe=recaptcha_iframe)
+
+    driver2.find_element(By.CLASS_NAME,"uk-button uk-button-danger").click()
 
     lista_game = []
 
-    html_dos_links = driver.page_source
+    html_dos_links = driver2.page_source
 
     soup = BeautifulSoup(html_dos_links, "html.parser")
 
@@ -175,8 +166,6 @@ def extrator_de_links_game(driver: WebDriver):
     return lista_game
 
 def extrator_links_download_page(driver: WebDriver, lista_game: list):
-
-    driver.maximize_window()
 
     game_partes = lista_game.__len__()
 
@@ -226,7 +215,6 @@ def download_game(link_download: list, game_selecionado, diretorio):
 
                 local_filename = os.path.join(diretorio, f"{game_selecionado}.part{pt}.rar")
 
-                # Verifica se a requisição foi bem sucedida (código de status 200)
                 if response.status_code == 200:
                     # Obtém o tamanho total do arquivo em bytes
                     total_size_in_bytes = int(response.headers.get('content-length', 0))
@@ -267,15 +255,16 @@ def main():
 
     driver = navegador(diretorio,arquivo_adblock)
 
-    messagebox.showinfo(
-        "Finalizando",
-        "Finalizando de instalar o adblock...\n Clique em OK e feche a aba do adblock \n Você será redirecionado para a página dos jogos...",
-    )
-    game_selecionado = escolhe_jogo(driver)
-    lista_game = extrator_de_links_game(driver)
-    link_download = extrator_links_download_page(driver,lista_game)
+    time.sleep(6) #tempo para a página carregar completamente
 
-    driver.minimize_window()
+    janela = driver.window_handles
+    driver.switch_to.window(janela[1])
+    driver.close()
+    driver.switch_to.window(janela[0])
+
+    game_selecionado = escolhe_jogo(driver)
+    lista_game = extrator_de_links_game(driver,arquivo_adblock)
+    link_download = extrator_links_download_page(driver,lista_game)
     
     if diretorio:
         download_game(link_download,game_selecionado,diretorio)
