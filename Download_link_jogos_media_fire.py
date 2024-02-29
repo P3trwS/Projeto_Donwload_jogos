@@ -44,7 +44,7 @@ def diretorio_download():
 
 def seleciona_arquivo_CRX(root: Tk):
 
-    messagebox.showinfo("Selecione","Selecione o arquido do Adblock  \n necessário para q")
+    messagebox.showinfo("Selecione","Selecione o arquivo CRX do Adblock  \nnecessário para que o script funcione corretamente")
 
     root.withdraw()
     arquivo_crx = filedialog.askopenfilename(filetypes=[("Arquivos CRX", "*.crx")])
@@ -141,12 +141,17 @@ def extrator_de_links_game(driver: WebDriver):
 
     driver.maximize_window()
 
+
+## Atualização para fazer a confirmação atomática do recaptcha
+    
     messagebox.showwarning(
         "Atenção",
         "FAÇA O reCAPTCHA DIREITO E CLIQUE EM OK PARA CONTINUAR\n !!!CLIQUE EM OK DEPOIS DE RESOLVER O RECAPTCHA",
     )
 
     time.sleep(4)
+
+#-------------------------------------------------------------------
 
     lista_game = []
 
@@ -219,7 +224,7 @@ def download_game(link_download: list, game_selecionado, diretorio):
                 # Fazendo a requisição GET para baixar o arquivo
                 response = requests.get(url, stream=True)  # O parâmetro stream=True é necessário para downloads grandes      
 
-                local_filename = os.path.join(diretorio, f"{game_selecionado}_part_{pt}.zip")
+                local_filename = os.path.join(diretorio, f"{game_selecionado}.part{pt}.rar")
 
                 # Verifica se a requisição foi bem sucedida (código de status 200)
                 if response.status_code == 200:
