@@ -21,11 +21,6 @@ Python 3.x 🐍
 
 Bibliotecas Python: tkinter, requests, tqdm, BeautifulSoup, selenium 📦
 
-## Instalação 🚀
-Clone o repositório ou baixe o arquivo ZIP.
-Instale as dependências com pip install -r requirements.txt.
-Certifique-se de ter o Chrome WebDriver instalado e configurado corretamente, ou altere o navegador no código conforme necessário.
-Execute o script main.py.
 ## Utilização 🚀
 
 Execute o script main.py.
