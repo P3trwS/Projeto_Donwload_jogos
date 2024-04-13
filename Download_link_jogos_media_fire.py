@@ -36,26 +36,40 @@ def diretorio_download():
         return exit()
     return download_dir
 
-def _seleciona_arquivo_CRX():
+def _seleciona_arquivo_CRX1():
 
     diretorio_script = os.path.dirname(os.path.realpath(__file__))
-    arquivo_crx_path = os.path.join(diretorio_script, "AdBlock-—-o-melhor-bloqueador-de-anúncios.crx")
+    arquivo_crx1_path = os.path.join(diretorio_script, "AdBlock-—-o-melhor-bloqueador-de-anúncios.crx")
     
-    if os.path.exists(arquivo_crx_path):
-        print("Arquivo CRX encontrado:", arquivo_crx_path)
-        return arquivo_crx_path
+    if os.path.exists(arquivo_crx1_path):
+        print("Arquivo CRX1 encontrado:", arquivo_crx1_path)
+        return arquivo_crx1_path
     else:
         messagebox.showerror(
-            "Erro", "O arquivo CRX necessário não foi encontrado. \nVeirifique se o arquivo AdBlock-—-o-melhor-bloqueador-de-anúncios.crx esta na mesma do arquivo python\nFechando o programa..."
+            "Erro", "O arquivo CRX necessário não foi encontrado. \nVerifique se esta na mesma do arquivo python\nFechando o programa..."
         )
-        
+        return None
+    
+def _seleciona_arquivo_CRX2():
+
+    diretorio_script = os.path.dirname(os.path.realpath(__file__))
+    arquivo_crx2_path = os.path.join(diretorio_script, "Bloqueador-de-pop-ups-para-Chrome™-Poper-Blocker.crx")
+
+    if os.path.exists(arquivo_crx2_path):
+        print("Arquivo CRX1 encontrado:", arquivo_crx2_path)
+        return arquivo_crx2_path
+    else:
+        messagebox.showerror(
+            "Erro", "O arquivo CRX necessário não foi encontrado. \nVerifique se esta na mesma do arquivo python\nFechando o programa..."
+        )
         return None
 
 def arquivo_crx():
-    file_crx = _seleciona_arquivo_CRX()
-    if not file_crx:
+    file_crx1 = _seleciona_arquivo_CRX1()
+    file_crx2 = _seleciona_arquivo_CRX2()
+    if not file_crx1 and not file_crx2:
         return exit()
-    return file_crx
+    return file_crx1, file_crx2
 
 def navegador(download_dir,file_crx) -> WebDriver:
     chrome_options = Options()
@@ -68,9 +82,10 @@ def navegador(download_dir,file_crx) -> WebDriver:
 
     return driver
 
-def navgoogle(file_crx) -> WebDriverC:
+def navgoogle(file_crx1,file_crx2) -> WebDriverC:
     chrome_options = Options()
-    chrome_options.add_extension(f'{file_crx}')
+    chrome_options.add_extension(f'{file_crx1}')
+    chrome_options.add_extension(f'{file_crx2}')
     chrome_options.add_argument('--no-sandbox')
     driver2 = webdriver.Chrome(options=chrome_options)
 
@@ -118,7 +133,7 @@ def extrator_links(driver: WebDriver):
     return link_mediafire, links_downlaod
 
 
-def extrator_de_links_game(driver:WebDriver, file_crx):
+def extrator_de_links_game(driver:WebDriver, file_crx, file_crx2):
 
     messagebox.showinfo(
         "ATENÇÃO", "Vou selecionar para baixar o jogo pelo MEDIA FIRE..."
@@ -132,17 +147,30 @@ def extrator_de_links_game(driver:WebDriver, file_crx):
         
 ## Atualização para fazer a confirmação atomática do recaptcha
 
-    driver2 = navgoogle(file_crx=file_crx)
+    driver2 = navgoogle(file_crx,file_crx2)
     
     solver = RecaptchaSolver(driver=driver2)
+    
+    print(mediafire_link)
 
     driver2.get(mediafire_link)
+
+    time.sleep(6) #tempo para a página carregar completamente
+
+    janela = driver2.window_handles
+    driver2.switch_to.window(janela[1])
+    driver2.close()
+    driver2.switch_to.window(janela[0])
 
     recaptcha_iframe = driver2.find_element(By.XPATH, "/html/body/div[1]/div[3]/div/main/div/div/div[1]/form/div/div/div[2]/div/div/div/div/div/iframe")
 
     solver.click_recaptcha_v2(iframe=recaptcha_iframe)
 
-    driver2.find_element(By.CLASS_NAME,"uk-button uk-button-danger").click()
+    driver2.find_element(By.XPATH,"/html/body/div[1]/div[3]/div/main/div/div/div[1]/form/div/div/div[3]/div/div/button").click()
+
+    time.sleep(6) #tempo para a página carregar
+
+    driver2.find_element(By.CLASS_NAME,"wrapper").click()
 
     lista_game = []
 
@@ -253,7 +281,7 @@ def main():
     diretorio = diretorio_download()
     arquivo_adblock = arquivo_crx()
 
-    driver = navegador(diretorio,arquivo_adblock)
+    driver = navegador(diretorio,arquivo_adblock[0])
 
     time.sleep(6) #tempo para a página carregar completamente
 
@@ -263,7 +291,7 @@ def main():
     driver.switch_to.window(janela[0])
 
     game_selecionado = escolhe_jogo(driver)
-    lista_game = extrator_de_links_game(driver,arquivo_adblock)
+    lista_game = extrator_de_links_game(driver,arquivo_adblock[0],arquivo_adblock[1])
     link_download = extrator_links_download_page(driver,lista_game)
     
     if diretorio:
