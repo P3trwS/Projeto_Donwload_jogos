@@ -1,5 +1,5 @@
 ## Download Automático de Jogos 🎮
-Este script Python automatiza o processo de download de jogos do site ElAmigos Games, utilizando Selenium e BeautifulSoup para navegar pelo site e extrair links de download, e requests para baixar os arquivos. Ele também permite selecionar o diretório de download e o arquivo CRX do Adblock necessário para a navegação.
+Este script Python autoral automatiza o processo de download de jogos do site ElAmigos Games, utilizando Selenium e BeautifulSoup faço uma raspagem e tratamento de dados para navegar pelo site e extrair links de download, e requests para baixar os arquivos. Ele também permite selecionar o diretório de download e o arquivo CRX do Adblock necessário para a navegação.
 
 ## Créditos...🔗
 ReCapchaSolver -> https://github.com/thicccat688/selenium-recaptcha-solver
@@ -19,7 +19,7 @@ Download automático dos arquivos 📥
 Tratamento de erros em diferentes etapas do processo ❌
 
 ## Requisitos ⚙️
-Python 3.x 🐍
+Python 3.10 🐍
 
 Bibliotecas Python: tkinter, requests, tqdm, BeautifulSoup, selenium 📦
 
